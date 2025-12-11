@@ -72,7 +72,7 @@ export class RucherRepository {
 
     if (!ruche) return false;
 
-    await ruche.update({ rucherId: null as any });
+    await ruche.update({ rucherId: undefined });
     return true;
   }
 

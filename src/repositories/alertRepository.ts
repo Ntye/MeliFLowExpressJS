@@ -1,3 +1,4 @@
+import { Op } from 'sequelize';
 import { AlertRule, AlertRuleCreationAttributes } from '../models/AlertRule';
 import { TriggeredAlert, TriggeredAlertCreationAttributes } from '../models/TriggeredAlert';
 import { Ruche } from '../models/Ruche';
@@ -67,8 +68,8 @@ export class AlertRepository {
 
     if (filters?.startDate || filters?.endDate) {
       where.triggeredAt = {};
-      if (filters.startDate) where.triggeredAt.gte = filters.startDate;
-      if (filters.endDate) where.triggeredAt.lte = filters.endDate;
+      if (filters.startDate) where.triggeredAt[Op.gte] = filters.startDate;
+      if (filters.endDate) where.triggeredAt[Op.lte] = filters.endDate;
     }
 
     return await TriggeredAlert.findAll({

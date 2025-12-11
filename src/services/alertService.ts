@@ -3,6 +3,8 @@ import { AlertRuleCreationAttributes } from '../models/AlertRule';
 import { Measurement } from '../models/Measurement';
 import { alertWebSocket } from '../websocket/alertNotificationHandler';
 
+const FLOATING_POINT_EPSILON = 0.01;
+
 export class AlertService {
   private alertRepository: AlertRepository;
 
@@ -117,7 +119,7 @@ export class AlertService {
         return rule.threshold !== null && value < rule.threshold;
 
       case 'equals':
-        return rule.threshold !== null && Math.abs(value - rule.threshold) < 0.01;
+        return rule.threshold !== null && Math.abs(value - rule.threshold) < FLOATING_POINT_EPSILON;
 
       case 'between':
         return (
@@ -132,16 +134,21 @@ export class AlertService {
     }
   }
 
+  private parseDecimalValue(value: any): number | null {
+    if (value === null || value === undefined) return null;
+    return parseFloat(value.toString());
+  }
+
   private getValueForAlertType(alertType: string, measurement: Measurement): number | null {
     switch (alertType) {
       case 'weight':
-        return measurement.weight ? parseFloat(measurement.weight.toString()) : null;
+        return this.parseDecimalValue(measurement.weight);
 
       case 'temperature':
-        return measurement.temperature ? parseFloat(measurement.temperature.toString()) : null;
+        return this.parseDecimalValue(measurement.temperature);
 
       case 'humidity':
-        return measurement.humidity ? parseFloat(measurement.humidity.toString()) : null;
+        return this.parseDecimalValue(measurement.humidity);
 
       default:
         return null;

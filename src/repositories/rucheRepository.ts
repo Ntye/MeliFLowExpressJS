@@ -109,8 +109,8 @@ export class RucheRepository {
       return { totalGain: 0, averageDailyGain: 0, measurements: measurements.length };
     }
 
-    const firstWeight = measurements[0].weight || 0;
-    const lastWeight = measurements[measurements.length - 1].weight || 0;
+    const firstWeight = measurements[0].weight ?? 0;
+    const lastWeight = measurements[measurements.length - 1].weight ?? 0;
     const totalGain = lastWeight - firstWeight;
     const averageDailyGain = totalGain / days;
 
