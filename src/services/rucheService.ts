@@ -15,11 +15,7 @@ export class RucheService {
     return await this.rucheRepository.create(data);
   }
 
-  async getAllRuches(filters?: {
-    status?: string;
-    rucherId?: number;
-    userId?: number;
-  }) {
+  async getAllRuches(filters?: { status?: string; rucherId?: number; userId?: number }) {
     return await this.rucheRepository.findAll(filters);
   }
 

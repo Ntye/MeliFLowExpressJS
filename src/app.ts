@@ -4,21 +4,22 @@ import { config } from './config/environment';
 import { requestLogger } from './middleware/logging';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import routes from './routes';
-import { logger } from './utils/logger';
 
 const app: Application = express();
 
 // Middleware
-app.use(cors({
-  origin: config.cors.origin,
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: config.cors.origin,
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(requestLogger);
 
 // Health check endpoint
-app.get('/health', (req: Request, res: Response) => {
+app.get('/health', (_req: Request, res: Response) => {
   res.status(200).json({
     success: true,
     status: 'healthy',
@@ -28,7 +29,7 @@ app.get('/health', (req: Request, res: Response) => {
 });
 
 // API status endpoint
-app.get('/status', (req: Request, res: Response) => {
+app.get('/status', (_req: Request, res: Response) => {
   res.status(200).json({
     success: true,
     name: 'MeliFlow API',

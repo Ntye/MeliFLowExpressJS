@@ -15,7 +15,7 @@ export class AlertRepository {
     userId?: number;
   }): Promise<AlertRule[]> {
     const where: any = {};
-    
+
     if (filters?.rucheId) where.rucheId = filters.rucheId;
     if (filters?.rucherId) where.rucherId = filters.rucherId;
     if (filters?.enabled !== undefined) where.enabled = filters.enabled;
@@ -23,25 +23,24 @@ export class AlertRepository {
 
     return await AlertRule.findAll({
       where,
-      include: [
-        { model: Ruche, as: 'ruche', attributes: ['id', 'name'] },
-      ],
+      include: [{ model: Ruche, as: 'ruche', attributes: ['id', 'name'] }],
       order: [['createdAt', 'DESC']],
     });
   }
 
   async findRuleById(id: number): Promise<AlertRule | null> {
     return await AlertRule.findByPk(id, {
-      include: [
-        { model: Ruche, as: 'ruche', attributes: ['id', 'name'] },
-      ],
+      include: [{ model: Ruche, as: 'ruche', attributes: ['id', 'name'] }],
     });
   }
 
-  async updateRule(id: number, data: Partial<AlertRuleCreationAttributes>): Promise<AlertRule | null> {
+  async updateRule(
+    id: number,
+    data: Partial<AlertRuleCreationAttributes>
+  ): Promise<AlertRule | null> {
     const rule = await AlertRule.findByPk(id);
     if (!rule) return null;
-    
+
     await rule.update(data);
     return rule;
   }
@@ -62,10 +61,10 @@ export class AlertRepository {
     endDate?: Date;
   }): Promise<TriggeredAlert[]> {
     const where: any = {};
-    
+
     if (filters?.rucheId) where.rucheId = filters.rucheId;
     if (filters?.acknowledged !== undefined) where.acknowledged = filters.acknowledged;
-    
+
     if (filters?.startDate || filters?.endDate) {
       where.triggeredAt = {};
       if (filters.startDate) where.triggeredAt.gte = filters.startDate;
@@ -120,12 +119,12 @@ export class AlertRepository {
   async acknowledgeAlert(id: number): Promise<TriggeredAlert | null> {
     const alert = await TriggeredAlert.findByPk(id);
     if (!alert) return null;
-    
+
     await alert.update({
       acknowledged: true,
       acknowledgedAt: new Date(),
     });
-    
+
     return alert;
   }
 

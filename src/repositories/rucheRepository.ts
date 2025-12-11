@@ -14,32 +14,28 @@ export class RucheRepository {
     userId?: number;
   }): Promise<Ruche[]> {
     const where: any = {};
-    
+
     if (filters?.status) where.status = filters.status;
     if (filters?.rucherId) where.rucherId = filters.rucherId;
     if (filters?.userId) where.userId = filters.userId;
 
     return await Ruche.findAll({
       where,
-      include: [
-        { model: Rucher, as: 'rucher', attributes: ['id', 'name', 'location'] },
-      ],
+      include: [{ model: Rucher, as: 'rucher', attributes: ['id', 'name', 'location'] }],
       order: [['createdAt', 'DESC']],
     });
   }
 
   async findById(id: number): Promise<Ruche | null> {
     return await Ruche.findByPk(id, {
-      include: [
-        { model: Rucher, as: 'rucher', attributes: ['id', 'name', 'location'] },
-      ],
+      include: [{ model: Rucher, as: 'rucher', attributes: ['id', 'name', 'location'] }],
     });
   }
 
   async update(id: number, data: Partial<RucheCreationAttributes>): Promise<Ruche | null> {
     const ruche = await Ruche.findByPk(id);
     if (!ruche) return null;
-    
+
     await ruche.update(data);
     return ruche;
   }
@@ -49,13 +45,9 @@ export class RucheRepository {
     return result > 0;
   }
 
-  async getMeasurements(
-    rucheId: number,
-    startDate?: Date,
-    endDate?: Date
-  ): Promise<Measurement[]> {
+  async getMeasurements(rucheId: number, startDate?: Date, endDate?: Date): Promise<Measurement[]> {
     const where: any = { rucheId };
-    
+
     if (startDate || endDate) {
       where.timestamp = {};
       if (startDate) where.timestamp[Op.gte] = startDate;
@@ -75,14 +67,17 @@ export class RucheRepository {
     });
   }
 
-  async addMeasurement(rucheId: number, data: {
-    weight?: number;
-    temperature?: number;
-    humidity?: number;
-    signalStrength?: number;
-    batteryLevel?: number;
-    timestamp?: Date;
-  }): Promise<Measurement> {
+  async addMeasurement(
+    rucheId: number,
+    data: {
+      weight?: number;
+      temperature?: number;
+      humidity?: number;
+      signalStrength?: number;
+      batteryLevel?: number;
+      timestamp?: Date;
+    }
+  ): Promise<Measurement> {
     return await Measurement.create({
       rucheId,
       ...data,
@@ -90,7 +85,10 @@ export class RucheRepository {
     });
   }
 
-  async getGainAnalytics(rucheId: number, days: number = 30): Promise<{
+  async getGainAnalytics(
+    rucheId: number,
+    days: number = 30
+  ): Promise<{
     totalGain: number;
     averageDailyGain: number;
     measurements: number;
@@ -102,7 +100,7 @@ export class RucheRepository {
       where: {
         rucheId,
         timestamp: { [Op.gte]: startDate },
-        weight: { [Op.ne]: null },
+        weight: { [Op.ne]: null as any },
       },
       order: [['timestamp', 'ASC']],
     });

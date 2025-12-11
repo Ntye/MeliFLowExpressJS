@@ -3,7 +3,7 @@ import { Schema } from 'joi';
 import { logger } from '../utils/logger';
 
 export const validate = (schema: Schema) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
     const { error, value } = schema.validate(req.body, {
       abortEarly: false,
       stripUnknown: true,
@@ -17,11 +17,12 @@ export const validate = (schema: Schema) => {
 
       logger.warn('Validation error:', errors);
 
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         error: 'Validation error',
         details: errors,
       });
+      return;
     }
 
     req.body = value;

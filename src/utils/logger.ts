@@ -30,8 +30,6 @@ export const logger = winston.createLogger({
 
 // Add file transport in production
 if (config.app.env === 'production') {
-  logger.add(
-    new winston.transports.File({ filename: 'logs/error.log', level: 'error' })
-  );
+  logger.add(new winston.transports.File({ filename: 'logs/error.log', level: 'error' }));
   logger.add(new winston.transports.File({ filename: 'logs/combined.log' }));
 }

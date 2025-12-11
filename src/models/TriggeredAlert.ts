@@ -15,9 +15,15 @@ interface TriggeredAlertAttributes {
   updatedAt?: Date;
 }
 
-interface TriggeredAlertCreationAttributes extends Optional<TriggeredAlertAttributes, 'id' | 'acknowledged' | 'createdAt' | 'updatedAt'> {}
+interface TriggeredAlertCreationAttributes extends Optional<
+  TriggeredAlertAttributes,
+  'id' | 'acknowledged' | 'createdAt' | 'updatedAt'
+> {}
 
-class TriggeredAlert extends Model<TriggeredAlertAttributes, TriggeredAlertCreationAttributes> implements TriggeredAlertAttributes {
+class TriggeredAlert
+  extends Model<TriggeredAlertAttributes, TriggeredAlertCreationAttributes>
+  implements TriggeredAlertAttributes
+{
   public id!: number;
   public alertRuleId!: number;
   public rucheId?: number;

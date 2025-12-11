@@ -13,7 +13,10 @@ interface RucherAttributes {
   updatedAt?: Date;
 }
 
-interface RucherCreationAttributes extends Optional<RucherAttributes, 'id' | 'createdAt' | 'updatedAt'> {}
+interface RucherCreationAttributes extends Optional<
+  RucherAttributes,
+  'id' | 'createdAt' | 'updatedAt'
+> {}
 
 class Rucher extends Model<RucherAttributes, RucherCreationAttributes> implements RucherAttributes {
   public id!: number;

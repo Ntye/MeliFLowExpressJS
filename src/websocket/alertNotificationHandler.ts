@@ -1,15 +1,14 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import { logger } from '../utils/logger';
-import { config } from '../config/environment';
 
 class AlertWebSocketHandler {
   private wss: WebSocketServer | null = null;
   private clients: Set<WebSocket> = new Set();
 
   initialize(server: any) {
-    this.wss = new WebSocketServer({ 
+    this.wss = new WebSocketServer({
       server,
-      path: '/ws/alerts' 
+      path: '/ws/alerts',
     });
 
     this.wss.on('connection', (ws: WebSocket) => {
@@ -20,7 +19,7 @@ class AlertWebSocketHandler {
         try {
           const data = JSON.parse(message.toString());
           logger.debug('WebSocket message received:', data);
-          
+
           // Handle ping/pong for keep-alive
           if (data.type === 'ping') {
             ws.send(JSON.stringify({ type: 'pong' }));
@@ -41,11 +40,13 @@ class AlertWebSocketHandler {
       });
 
       // Send welcome message
-      ws.send(JSON.stringify({
-        type: 'connected',
-        message: 'Connected to MeliFlow alert notifications',
-        timestamp: new Date().toISOString(),
-      }));
+      ws.send(
+        JSON.stringify({
+          type: 'connected',
+          message: 'Connected to MeliFlow alert notifications',
+          timestamp: new Date().toISOString(),
+        })
+      );
     });
 
     logger.info(`WebSocket server initialized on path /ws/alerts`);
@@ -70,10 +71,12 @@ class AlertWebSocketHandler {
 
   sendToClient(client: WebSocket, data: any) {
     if (client.readyState === WebSocket.OPEN) {
-      client.send(JSON.stringify({
-        ...data,
-        timestamp: new Date().toISOString(),
-      }));
+      client.send(
+        JSON.stringify({
+          ...data,
+          timestamp: new Date().toISOString(),
+        })
+      );
     }
   }
 

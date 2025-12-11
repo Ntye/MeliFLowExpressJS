@@ -17,7 +17,10 @@ interface RucheAttributes {
   updatedAt?: Date;
 }
 
-interface RucheCreationAttributes extends Optional<RucheAttributes, 'id' | 'createdAt' | 'updatedAt'> {}
+interface RucheCreationAttributes extends Optional<
+  RucheAttributes,
+  'id' | 'createdAt' | 'updatedAt'
+> {}
 
 class Ruche extends Model<RucheAttributes, RucheCreationAttributes> implements RucheAttributes {
   public id!: number;

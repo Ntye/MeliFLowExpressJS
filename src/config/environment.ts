@@ -20,7 +20,10 @@ export const config = {
     level: process.env.LOG_LEVEL || 'info',
   },
   cors: {
-    origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:3001', 'http://localhost:5173'],
+    origin: process.env.CORS_ORIGIN?.split(',') || [
+      'http://localhost:3001',
+      'http://localhost:5173',
+    ],
   },
   websocket: {
     port: parseInt(process.env.WS_PORT || '3001', 10),

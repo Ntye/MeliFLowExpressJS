@@ -40,7 +40,7 @@ export class RucherRepository {
   async update(id: number, data: Partial<RucherCreationAttributes>): Promise<Rucher | null> {
     const rucher = await Rucher.findByPk(id);
     if (!rucher) return null;
-    
+
     await rucher.update(data);
     return rucher;
   }
@@ -69,10 +69,10 @@ export class RucherRepository {
     const ruche = await Ruche.findOne({
       where: { id: rucheId, rucherId },
     });
-    
+
     if (!ruche) return false;
-    
-    await ruche.update({ rucherId: null });
+
+    await ruche.update({ rucherId: null as any });
     return true;
   }
 
@@ -159,7 +159,8 @@ export class RucherRepository {
       totalGain: parseFloat(totalGain.toFixed(2)),
       hiveCount: ruches.length,
       averageTemperature: tempCount > 0 ? parseFloat((totalTemp / tempCount).toFixed(2)) : 0,
-      averageHumidity: humidityCount > 0 ? parseFloat((totalHumidity / humidityCount).toFixed(2)) : 0,
+      averageHumidity:
+        humidityCount > 0 ? parseFloat((totalHumidity / humidityCount).toFixed(2)) : 0,
     };
   }
 }

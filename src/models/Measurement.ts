@@ -14,9 +14,15 @@ interface MeasurementAttributes {
   updatedAt?: Date;
 }
 
-interface MeasurementCreationAttributes extends Optional<MeasurementAttributes, 'id' | 'createdAt' | 'updatedAt'> {}
+interface MeasurementCreationAttributes extends Optional<
+  MeasurementAttributes,
+  'id' | 'createdAt' | 'updatedAt'
+> {}
 
-class Measurement extends Model<MeasurementAttributes, MeasurementCreationAttributes> implements MeasurementAttributes {
+class Measurement
+  extends Model<MeasurementAttributes, MeasurementCreationAttributes>
+  implements MeasurementAttributes
+{
   public id!: number;
   public rucheId!: number;
   public weight?: number;

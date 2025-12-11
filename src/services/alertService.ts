@@ -77,7 +77,7 @@ export class AlertService {
 
     for (const rule of rules) {
       const triggered = this.evaluateRule(rule, measurement);
-      
+
       if (triggered) {
         const message = this.generateAlertMessage(rule, measurement);
         const value = this.getValueForAlertType(rule.alertType, measurement);
@@ -87,7 +87,7 @@ export class AlertService {
           rucheId: measurement.rucheId,
           measurementId: measurement.id,
           message,
-          value,
+          value: value ?? undefined,
           triggeredAt: new Date(),
         });
 
@@ -104,7 +104,7 @@ export class AlertService {
 
   private evaluateRule(rule: any, measurement: Measurement): boolean {
     const value = this.getValueForAlertType(rule.alertType, measurement);
-    
+
     if (value === null || value === undefined) {
       return false;
     }
@@ -112,13 +112,13 @@ export class AlertService {
     switch (rule.condition) {
       case 'greater_than':
         return rule.threshold !== null && value > rule.threshold;
-      
+
       case 'less_than':
         return rule.threshold !== null && value < rule.threshold;
-      
+
       case 'equals':
         return rule.threshold !== null && Math.abs(value - rule.threshold) < 0.01;
-      
+
       case 'between':
         return (
           rule.thresholdMin !== null &&
@@ -126,7 +126,7 @@ export class AlertService {
           value >= rule.thresholdMin &&
           value <= rule.thresholdMax
         );
-      
+
       default:
         return false;
     }
@@ -136,13 +136,13 @@ export class AlertService {
     switch (alertType) {
       case 'weight':
         return measurement.weight ? parseFloat(measurement.weight.toString()) : null;
-      
+
       case 'temperature':
         return measurement.temperature ? parseFloat(measurement.temperature.toString()) : null;
-      
+
       case 'humidity':
         return measurement.humidity ? parseFloat(measurement.humidity.toString()) : null;
-      
+
       default:
         return null;
     }
@@ -155,16 +155,16 @@ export class AlertService {
     switch (rule.condition) {
       case 'greater_than':
         return `${rule.name}: ${rule.alertType} (${value}${unit}) is greater than threshold (${rule.threshold}${unit})`;
-      
+
       case 'less_than':
         return `${rule.name}: ${rule.alertType} (${value}${unit}) is less than threshold (${rule.threshold}${unit})`;
-      
+
       case 'equals':
         return `${rule.name}: ${rule.alertType} (${value}${unit}) equals threshold (${rule.threshold}${unit})`;
-      
+
       case 'between':
         return `${rule.name}: ${rule.alertType} (${value}${unit}) is between ${rule.thresholdMin}${unit} and ${rule.thresholdMax}${unit}`;
-      
+
       default:
         return `${rule.name}: Alert triggered`;
     }

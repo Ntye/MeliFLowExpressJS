@@ -17,9 +17,15 @@ interface AlertRuleAttributes {
   updatedAt?: Date;
 }
 
-interface AlertRuleCreationAttributes extends Optional<AlertRuleAttributes, 'id' | 'enabled' | 'createdAt' | 'updatedAt'> {}
+interface AlertRuleCreationAttributes extends Optional<
+  AlertRuleAttributes,
+  'id' | 'enabled' | 'createdAt' | 'updatedAt'
+> {}
 
-class AlertRule extends Model<AlertRuleAttributes, AlertRuleCreationAttributes> implements AlertRuleAttributes {
+class AlertRule
+  extends Model<AlertRuleAttributes, AlertRuleCreationAttributes>
+  implements AlertRuleAttributes
+{
   public id!: number;
   public name!: string;
   public rucheId?: number;

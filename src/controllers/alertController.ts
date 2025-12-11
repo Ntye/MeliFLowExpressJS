@@ -27,7 +27,8 @@ export class AlertController {
       const filters = {
         rucheId: req.query.rucheId ? parseInt(req.query.rucheId as string) : undefined,
         rucherId: req.query.rucherId ? parseInt(req.query.rucherId as string) : undefined,
-        enabled: req.query.enabled === 'true' ? true : req.query.enabled === 'false' ? false : undefined,
+        enabled:
+          req.query.enabled === 'true' ? true : req.query.enabled === 'false' ? false : undefined,
         userId: req.query.userId ? parseInt(req.query.userId as string) : undefined,
       };
 
@@ -106,7 +107,12 @@ export class AlertController {
     try {
       const filters = {
         rucheId: req.query.rucheId ? parseInt(req.query.rucheId as string) : undefined,
-        acknowledged: req.query.acknowledged === 'true' ? true : req.query.acknowledged === 'false' ? false : undefined,
+        acknowledged:
+          req.query.acknowledged === 'true'
+            ? true
+            : req.query.acknowledged === 'false'
+              ? false
+              : undefined,
         startDate: req.query.startDate ? new Date(req.query.startDate as string) : undefined,
         endDate: req.query.endDate ? new Date(req.query.endDate as string) : undefined,
       };
