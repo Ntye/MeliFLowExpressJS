@@ -127,3 +127,8 @@ export const analyticsQuerySchema = Joi.object({
   start_date: Joi.date().iso().required(),
   end_date: Joi.date().iso().required(),
 });
+
+// Manage ruche in rucher validation schema
+export const manageRucheSchema = Joi.object({
+  action: Joi.string().valid('add', 'remove').required(),
+});

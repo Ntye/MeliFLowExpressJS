@@ -1,5 +1,4 @@
-import { AlertRule, Alert } from '../models';
-import { MeasurementAttributes } from '../models/Measurement';
+import { AlertRule, Alert, Measurement } from '../models';
 import logger from '../utils/logger';
 
 /**
@@ -9,7 +8,7 @@ export class AlertService {
   /**
    * Evaluate alerts for a new measurement
    */
-  async evaluateAlertsForMeasurement(measurement: MeasurementAttributes): Promise<void> {
+  async evaluateAlertsForMeasurement(measurement: Measurement): Promise<void> {
     try {
       // Get all active alert rules for this ruche
       const alertRules = await AlertRule.findAll({
@@ -34,7 +33,7 @@ export class AlertService {
   /**
    * Evaluate a single alert rule against a measurement
    */
-  private evaluateRule(rule: AlertRule, measurement: MeasurementAttributes): boolean {
+  private evaluateRule(rule: AlertRule, measurement: Measurement): boolean {
     const metricValue = this.getMeasurementValue(measurement, rule.metric);
 
     if (metricValue === null || metricValue === undefined) {
@@ -62,7 +61,7 @@ export class AlertService {
   /**
    * Get measurement value by metric name
    */
-  private getMeasurementValue(measurement: MeasurementAttributes, metric: string): number | null {
+  private getMeasurementValue(measurement: Measurement, metric: string): number | null {
     switch (metric) {
       case 'weight':
         return measurement.weight ?? null;
@@ -80,10 +79,7 @@ export class AlertService {
   /**
    * Create a new alert
    */
-  private async createAlert(
-    rule: AlertRule,
-    measurement: MeasurementAttributes
-  ): Promise<Alert> {
+  private async createAlert(rule: AlertRule, measurement: Measurement): Promise<Alert> {
     const metricValue = this.getMeasurementValue(measurement, rule.metric);
 
     const message = `Alert: ${rule.name} - ${rule.metric} ${rule.operator} ${rule.threshold} (current: ${metricValue})`;

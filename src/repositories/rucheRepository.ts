@@ -53,14 +53,18 @@ export class RucheRepository {
 
     // Spatial filtering by radius
     if (filters.latitude && filters.longitude && filters.radius) {
-      const point = `ST_SetSRID(ST_MakePoint(${filters.longitude}, ${filters.latitude}), 4326)`;
       where[Op.and] = literal(
-        `ST_DWithin(location::geography, ${point}::geography, ${filters.radius})`
+        `ST_DWithin(location::geography, ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326)::geography, :radius)`
       );
     }
 
     return await Ruche.findAll({
       where,
+      replacements: {
+        longitude: filters.longitude,
+        latitude: filters.latitude,
+        radius: filters.radius,
+      },
       include: [
         {
           model: Rucher,

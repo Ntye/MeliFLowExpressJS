@@ -7,19 +7,14 @@ import {
   listRuchersQuerySchema,
   uuidSchema,
   uuidWithRucheSchema,
+  manageRucheSchema,
 } from '../utils/validators';
-import Joi from 'joi';
 
 const router = Router();
 
 /**
  * Rucher (Apiary) routes
  */
-
-// Validation schema for managing ruche in rucher
-const manageRucheSchema = Joi.object({
-  action: Joi.string().valid('add', 'remove').required(),
-});
 
 // Create a new rucher
 router.post('/', validate(createRucherSchema, 'body'), ruchersController.createRucher);
