@@ -4,38 +4,26 @@ import { sequelize } from '../config/database';
 interface RucheAttributes {
   id: number;
   name: string;
-  location: string;
-  latitude?: number;
-  longitude?: number;
-  description?: string;
-  hiveType?: string;
-  installationDate?: Date;
-  status?: 'active' | 'inactive' | 'maintenance';
-  userId?: number;
   rucherId?: number;
+  queenInfo?: string;
+  geom?: any; // PostGIS Point geometry
+  active: boolean;
   createdAt?: Date;
-  updatedAt?: Date;
 }
 
 interface RucheCreationAttributes extends Optional<
   RucheAttributes,
-  'id' | 'createdAt' | 'updatedAt'
+  'id' | 'active' | 'createdAt'
 > {}
 
 class Ruche extends Model<RucheAttributes, RucheCreationAttributes> implements RucheAttributes {
   public id!: number;
   public name!: string;
-  public location!: string;
-  public latitude?: number;
-  public longitude?: number;
-  public description?: string;
-  public hiveType?: string;
-  public installationDate?: Date;
-  public status?: 'active' | 'inactive' | 'maintenance';
-  public userId?: number;
   public rucherId?: number;
+  public queenInfo?: string;
+  public geom?: any;
+  public active!: boolean;
   public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
 }
 
 Ruche.init(
@@ -46,49 +34,9 @@ Ruche.init(
       primaryKey: true,
     },
     name: {
-      type: DataTypes.STRING(100),
-      allowNull: false,
-    },
-    location: {
-      type: DataTypes.STRING(255),
-      allowNull: false,
-    },
-    latitude: {
-      type: DataTypes.DECIMAL(10, 8),
-      allowNull: true,
-    },
-    longitude: {
-      type: DataTypes.DECIMAL(11, 8),
-      allowNull: true,
-    },
-    description: {
       type: DataTypes.TEXT,
-      allowNull: true,
-    },
-    hiveType: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-      field: 'hive_type',
-    },
-    installationDate: {
-      type: DataTypes.DATE,
-      allowNull: true,
-      field: 'installation_date',
-    },
-    status: {
-      type: DataTypes.ENUM('active', 'inactive', 'maintenance'),
-      allowNull: true,
-      defaultValue: 'active',
-    },
-    userId: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      field: 'user_id',
-      references: {
-        model: 'users',
-        key: 'id',
-      },
-      onDelete: 'SET NULL',
+      allowNull: false,
+      unique: true,
     },
     rucherId: {
       type: DataTypes.INTEGER,
@@ -98,22 +46,40 @@ Ruche.init(
         model: 'ruchers',
         key: 'id',
       },
-      onDelete: 'SET NULL',
+      onDelete: 'CASCADE',
+    },
+    queenInfo: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      field: 'queen_info',
+    },
+    geom: {
+      type: DataTypes.GEOMETRY('POINT', 4326),
+      allowNull: true,
+    },
+    active: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+      field: 'created_at',
     },
   },
   {
     sequelize,
     tableName: 'ruches',
-    timestamps: true,
+    timestamps: false,
     indexes: [
-      {
-        fields: ['user_id'],
-      },
       {
         fields: ['rucher_id'],
       },
       {
-        fields: ['status'],
+        fields: ['name'],
+        name: 'idx_ruches_name',
       },
     ],
   }

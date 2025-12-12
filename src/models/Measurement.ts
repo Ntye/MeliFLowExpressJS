@@ -4,19 +4,17 @@ import { sequelize } from '../config/database';
 interface MeasurementAttributes {
   id: number;
   rucheId: number;
+  recordedAt: Date;
   weight?: number;
   temperature?: number;
   humidity?: number;
-  signalStrength?: number;
-  batteryLevel?: number;
-  timestamp: Date;
-  createdAt?: Date;
-  updatedAt?: Date;
+  signal?: number;
+  raw?: any; // JSONB
 }
 
 interface MeasurementCreationAttributes extends Optional<
   MeasurementAttributes,
-  'id' | 'createdAt' | 'updatedAt'
+  'id' | 'recordedAt'
 > {}
 
 class Measurement
@@ -25,20 +23,18 @@ class Measurement
 {
   public id!: number;
   public rucheId!: number;
+  public recordedAt!: Date;
   public weight?: number;
   public temperature?: number;
   public humidity?: number;
-  public signalStrength?: number;
-  public batteryLevel?: number;
-  public timestamp!: Date;
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
+  public signal?: number;
+  public raw?: any;
 }
 
 Measurement.init(
   {
     id: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
       autoIncrement: true,
       primaryKey: true,
     },
@@ -52,49 +48,45 @@ Measurement.init(
       },
       onDelete: 'CASCADE',
     },
+    recordedAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+      field: 'recorded_at',
+    },
     weight: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: true,
-      comment: 'Weight in kilograms',
     },
     temperature: {
       type: DataTypes.DECIMAL(5, 2),
       allowNull: true,
-      comment: 'Temperature in Celsius',
     },
     humidity: {
       type: DataTypes.DECIMAL(5, 2),
       allowNull: true,
-      comment: 'Humidity percentage',
     },
-    signalStrength: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      field: 'signal_strength',
-      comment: 'Signal strength in dBm',
-    },
-    batteryLevel: {
+    signal: {
       type: DataTypes.DECIMAL(5, 2),
       allowNull: true,
-      field: 'battery_level',
-      comment: 'Battery level percentage',
     },
-    timestamp: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW,
+    raw: {
+      type: DataTypes.JSONB,
+      allowNull: true,
     },
   },
   {
     sequelize,
     tableName: 'measurements',
-    timestamps: true,
+    timestamps: false,
     indexes: [
       {
-        fields: ['ruche_id', 'timestamp'],
+        fields: ['ruche_id'],
+        name: 'idx_measurements_ruche',
       },
       {
-        fields: ['timestamp'],
+        fields: ['recorded_at'],
+        name: 'idx_measurements_recorded',
       },
     ],
   }

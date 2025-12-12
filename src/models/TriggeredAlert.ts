@@ -1,53 +1,43 @@
 import { DataTypes, Model, Optional } from 'sequelize';
 import { sequelize } from '../config/database';
 
-interface TriggeredAlertAttributes {
+interface AlertAttributes {
   id: number;
-  alertRuleId: number;
+  ruleId?: number;
   rucheId?: number;
-  measurementId?: number;
-  message: string;
-  value?: number;
   triggeredAt: Date;
-  acknowledged: boolean;
-  acknowledgedAt?: Date;
-  createdAt?: Date;
-  updatedAt?: Date;
+  payload?: any; // JSONB
+  sentWhatsapp: boolean;
 }
 
-interface TriggeredAlertCreationAttributes extends Optional<
-  TriggeredAlertAttributes,
-  'id' | 'acknowledged' | 'createdAt' | 'updatedAt'
+interface AlertCreationAttributes extends Optional<
+  AlertAttributes,
+  'id' | 'triggeredAt' | 'sentWhatsapp'
 > {}
 
-class TriggeredAlert
-  extends Model<TriggeredAlertAttributes, TriggeredAlertCreationAttributes>
-  implements TriggeredAlertAttributes
+class Alert
+  extends Model<AlertAttributes, AlertCreationAttributes>
+  implements AlertAttributes
 {
   public id!: number;
-  public alertRuleId!: number;
+  public ruleId?: number;
   public rucheId?: number;
-  public measurementId?: number;
-  public message!: string;
-  public value?: number;
   public triggeredAt!: Date;
-  public acknowledged!: boolean;
-  public acknowledgedAt?: Date;
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
+  public payload?: any;
+  public sentWhatsapp!: boolean;
 }
 
-TriggeredAlert.init(
+Alert.init(
   {
     id: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
       autoIncrement: true,
       primaryKey: true,
     },
-    alertRuleId: {
+    ruleId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
-      field: 'alert_rule_id',
+      allowNull: true,
+      field: 'rule_id',
       references: {
         model: 'alert_rules',
         key: 'id',
@@ -64,60 +54,35 @@ TriggeredAlert.init(
       },
       onDelete: 'CASCADE',
     },
-    measurementId: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      field: 'measurement_id',
-      references: {
-        model: 'measurements',
-        key: 'id',
-      },
-      onDelete: 'SET NULL',
-    },
-    message: {
-      type: DataTypes.TEXT,
-      allowNull: false,
-    },
-    value: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: true,
-    },
     triggeredAt: {
       type: DataTypes.DATE,
       allowNull: false,
-      field: 'triggered_at',
       defaultValue: DataTypes.NOW,
+      field: 'triggered_at',
     },
-    acknowledged: {
+    payload: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+    },
+    sentWhatsapp: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: false,
-    },
-    acknowledgedAt: {
-      type: DataTypes.DATE,
-      allowNull: true,
-      field: 'acknowledged_at',
+      field: 'sent_whatsapp',
     },
   },
   {
     sequelize,
-    tableName: 'triggered_alerts',
-    timestamps: true,
+    tableName: 'alerts',
+    timestamps: false,
     indexes: [
       {
-        fields: ['alert_rule_id'],
-      },
-      {
         fields: ['ruche_id'],
-      },
-      {
-        fields: ['triggered_at'],
-      },
-      {
-        fields: ['acknowledged'],
+        name: 'idx_alerts_ruche',
       },
     ],
   }
 );
 
-export { TriggeredAlert, TriggeredAlertAttributes, TriggeredAlertCreationAttributes };
+// Keep old export name for backward compatibility temporarily
+export { Alert, Alert as TriggeredAlert, AlertAttributes, AlertAttributes as TriggeredAlertAttributes, AlertCreationAttributes, AlertCreationAttributes as TriggeredAlertCreationAttributes };

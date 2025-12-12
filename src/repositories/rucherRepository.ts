@@ -8,17 +8,13 @@ export class RucherRepository {
     return await Rucher.create(data);
   }
 
-  async findAll(userId?: number): Promise<Rucher[]> {
-    const where: any = {};
-    if (userId) where.userId = userId;
-
+  async findAll(_userId?: number): Promise<Rucher[]> {
     return await Rucher.findAll({
-      where,
       include: [
         {
           model: Ruche,
           as: 'ruches',
-          attributes: ['id', 'name', 'status'],
+          attributes: ['id', 'name', 'active'],
         },
       ],
       order: [['createdAt', 'DESC']],
@@ -31,7 +27,7 @@ export class RucherRepository {
         {
           model: Ruche,
           as: 'ruches',
-          attributes: ['id', 'name', 'status', 'location'],
+          attributes: ['id', 'name', 'active', 'queenInfo'],
         },
       ],
     });
@@ -140,9 +136,9 @@ export class RucherRepository {
         return await Measurement.findOne({
           where: {
             rucheId,
-            timestamp: { [Op.lte]: thirtyDaysAgo },
+            recordedAt: { [Op.lte]: thirtyDaysAgo },
           },
-          order: [['timestamp', 'DESC']],
+          order: [['recordedAt', 'DESC']],
         });
       })
     );

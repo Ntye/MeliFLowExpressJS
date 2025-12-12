@@ -4,30 +4,24 @@ import { sequelize } from '../config/database';
 interface RucherAttributes {
   id: number;
   name: string;
-  location: string;
-  latitude?: number;
-  longitude?: number;
   description?: string;
-  userId?: number;
+  geom?: any; // PostGIS Polygon geometry
+  active: boolean;
   createdAt?: Date;
-  updatedAt?: Date;
 }
 
 interface RucherCreationAttributes extends Optional<
   RucherAttributes,
-  'id' | 'createdAt' | 'updatedAt'
+  'id' | 'active' | 'createdAt'
 > {}
 
 class Rucher extends Model<RucherAttributes, RucherCreationAttributes> implements RucherAttributes {
   public id!: number;
   public name!: string;
-  public location!: string;
-  public latitude?: number;
-  public longitude?: number;
   public description?: string;
-  public userId?: number;
+  public geom?: any;
+  public active!: boolean;
   public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
 }
 
 Rucher.init(
@@ -38,42 +32,38 @@ Rucher.init(
       primaryKey: true,
     },
     name: {
-      type: DataTypes.STRING(100),
+      type: DataTypes.TEXT,
       allowNull: false,
-    },
-    location: {
-      type: DataTypes.STRING(255),
-      allowNull: false,
-    },
-    latitude: {
-      type: DataTypes.DECIMAL(10, 8),
-      allowNull: true,
-    },
-    longitude: {
-      type: DataTypes.DECIMAL(11, 8),
-      allowNull: true,
+      unique: true,
     },
     description: {
       type: DataTypes.TEXT,
       allowNull: true,
     },
-    userId: {
-      type: DataTypes.INTEGER,
+    geom: {
+      type: DataTypes.GEOMETRY('POLYGON', 4326),
       allowNull: true,
-      references: {
-        model: 'users',
-        key: 'id',
-      },
-      onDelete: 'SET NULL',
+    },
+    active: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+      field: 'created_at',
     },
   },
   {
     sequelize,
     tableName: 'ruchers',
-    timestamps: true,
+    timestamps: false,
     indexes: [
       {
-        fields: ['user_id'],
+        fields: ['name'],
+        name: 'idx_ruchers_name',
       },
     ],
   }

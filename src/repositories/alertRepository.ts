@@ -1,8 +1,7 @@
 import { Op } from 'sequelize';
 import { AlertRule, AlertRuleCreationAttributes } from '../models/AlertRule';
-import { TriggeredAlert, TriggeredAlertCreationAttributes } from '../models/TriggeredAlert';
+import { Alert, AlertCreationAttributes } from '../models/TriggeredAlert';
 import { Ruche } from '../models/Ruche';
-import { Measurement } from '../models/Measurement';
 
 export class AlertRepository {
   async createRule(data: AlertRuleCreationAttributes): Promise<AlertRule> {
@@ -11,16 +10,12 @@ export class AlertRepository {
 
   async findAllRules(filters?: {
     rucheId?: number;
-    rucherId?: number;
-    enabled?: boolean;
-    userId?: number;
+    active?: boolean;
   }): Promise<AlertRule[]> {
     const where: any = {};
 
     if (filters?.rucheId) where.rucheId = filters.rucheId;
-    if (filters?.rucherId) where.rucherId = filters.rucherId;
-    if (filters?.enabled !== undefined) where.enabled = filters.enabled;
-    if (filters?.userId) where.userId = filters.userId;
+    if (filters?.active !== undefined) where.active = filters.active;
 
     return await AlertRule.findAll({
       where,
@@ -51,20 +46,18 @@ export class AlertRepository {
     return result > 0;
   }
 
-  async createTriggeredAlert(data: TriggeredAlertCreationAttributes): Promise<TriggeredAlert> {
-    return await TriggeredAlert.create(data);
+  async createAlert(data: AlertCreationAttributes): Promise<Alert> {
+    return await Alert.create(data);
   }
 
-  async findTriggeredAlerts(filters?: {
+  async findAlerts(filters?: {
     rucheId?: number;
-    acknowledged?: boolean;
     startDate?: Date;
     endDate?: Date;
-  }): Promise<TriggeredAlert[]> {
+  }): Promise<Alert[]> {
     const where: any = {};
 
     if (filters?.rucheId) where.rucheId = filters.rucheId;
-    if (filters?.acknowledged !== undefined) where.acknowledged = filters.acknowledged;
 
     if (filters?.startDate || filters?.endDate) {
       where.triggeredAt = {};
@@ -72,68 +65,46 @@ export class AlertRepository {
       if (filters.endDate) where.triggeredAt[Op.lte] = filters.endDate;
     }
 
-    return await TriggeredAlert.findAll({
+    return await Alert.findAll({
       where,
       include: [
         {
           model: AlertRule,
           as: 'alertRule',
-          attributes: ['id', 'name', 'alertType', 'condition'],
+          attributes: ['id', 'ruleType', 'params'],
         },
         {
           model: Ruche,
           as: 'ruche',
           attributes: ['id', 'name'],
         },
-        {
-          model: Measurement,
-          as: 'measurement',
-          attributes: ['id', 'timestamp', 'weight', 'temperature', 'humidity'],
-        },
       ],
       order: [['triggeredAt', 'DESC']],
     });
   }
 
-  async findTriggeredAlertById(id: number): Promise<TriggeredAlert | null> {
-    return await TriggeredAlert.findByPk(id, {
+  async findAlertById(id: number): Promise<Alert | null> {
+    return await Alert.findByPk(id, {
       include: [
         {
           model: AlertRule,
           as: 'alertRule',
-          attributes: ['id', 'name', 'alertType', 'condition', 'threshold'],
+          attributes: ['id', 'ruleType', 'params'],
         },
         {
           model: Ruche,
           as: 'ruche',
-          attributes: ['id', 'name', 'location'],
-        },
-        {
-          model: Measurement,
-          as: 'measurement',
-          attributes: ['id', 'timestamp', 'weight', 'temperature', 'humidity'],
+          attributes: ['id', 'name', 'queenInfo'],
         },
       ],
     });
-  }
-
-  async acknowledgeAlert(id: number): Promise<TriggeredAlert | null> {
-    const alert = await TriggeredAlert.findByPk(id);
-    if (!alert) return null;
-
-    await alert.update({
-      acknowledged: true,
-      acknowledgedAt: new Date(),
-    });
-
-    return alert;
   }
 
   async getActiveRulesForRuche(rucheId: number): Promise<AlertRule[]> {
     return await AlertRule.findAll({
       where: {
         rucheId,
-        enabled: true,
+        active: true,
       },
     });
   }

@@ -9,26 +9,24 @@ export class RucheRepository {
   }
 
   async findAll(filters?: {
-    status?: string;
+    active?: boolean;
     rucherId?: number;
-    userId?: number;
   }): Promise<Ruche[]> {
     const where: any = {};
 
-    if (filters?.status) where.status = filters.status;
+    if (filters?.active !== undefined) where.active = filters.active;
     if (filters?.rucherId) where.rucherId = filters.rucherId;
-    if (filters?.userId) where.userId = filters.userId;
 
     return await Ruche.findAll({
       where,
-      include: [{ model: Rucher, as: 'rucher', attributes: ['id', 'name', 'location'] }],
+      include: [{ model: Rucher, as: 'rucher', attributes: ['id', 'name', 'description'] }],
       order: [['createdAt', 'DESC']],
     });
   }
 
   async findById(id: number): Promise<Ruche | null> {
     return await Ruche.findByPk(id, {
-      include: [{ model: Rucher, as: 'rucher', attributes: ['id', 'name', 'location'] }],
+      include: [{ model: Rucher, as: 'rucher', attributes: ['id', 'name', 'description'] }],
     });
   }
 
@@ -49,21 +47,21 @@ export class RucheRepository {
     const where: any = { rucheId };
 
     if (startDate || endDate) {
-      where.timestamp = {};
-      if (startDate) where.timestamp[Op.gte] = startDate;
-      if (endDate) where.timestamp[Op.lte] = endDate;
+      where.recordedAt = {};
+      if (startDate) where.recordedAt[Op.gte] = startDate;
+      if (endDate) where.recordedAt[Op.lte] = endDate;
     }
 
     return await Measurement.findAll({
       where,
-      order: [['timestamp', 'DESC']],
+      order: [['recordedAt', 'DESC']],
     });
   }
 
   async getLatestMeasurement(rucheId: number): Promise<Measurement | null> {
     return await Measurement.findOne({
       where: { rucheId },
-      order: [['timestamp', 'DESC']],
+      order: [['recordedAt', 'DESC']],
     });
   }
 
@@ -73,15 +71,15 @@ export class RucheRepository {
       weight?: number;
       temperature?: number;
       humidity?: number;
-      signalStrength?: number;
-      batteryLevel?: number;
-      timestamp?: Date;
+      signal?: number;
+      raw?: any;
+      recordedAt?: Date;
     }
   ): Promise<Measurement> {
     return await Measurement.create({
       rucheId,
       ...data,
-      timestamp: data.timestamp || new Date(),
+      recordedAt: data.recordedAt || new Date(),
     });
   }
 
@@ -99,10 +97,10 @@ export class RucheRepository {
     const measurements = await Measurement.findAll({
       where: {
         rucheId,
-        timestamp: { [Op.gte]: startDate },
+        recordedAt: { [Op.gte]: startDate },
         weight: { [Op.ne]: null as any },
       },
-      order: [['timestamp', 'ASC']],
+      order: [['recordedAt', 'ASC']],
     });
 
     if (measurements.length < 2) {
