@@ -65,13 +65,13 @@ export class AlertService {
   private getMeasurementValue(measurement: MeasurementAttributes, metric: string): number | null {
     switch (metric) {
       case 'weight':
-        return measurement.weight;
+        return measurement.weight ?? null;
       case 'temperature':
-        return measurement.temperature;
+        return measurement.temperature ?? null;
       case 'humidity':
-        return measurement.humidity;
+        return measurement.humidity ?? null;
       case 'battery_level':
-        return measurement.battery_level;
+        return measurement.battery_level ?? null;
       default:
         return null;
     }
