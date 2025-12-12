@@ -107,17 +107,11 @@ export class AlertController {
     try {
       const filters = {
         rucheId: req.query.rucheId ? parseInt(req.query.rucheId as string) : undefined,
-        acknowledged:
-          req.query.acknowledged === 'true'
-            ? true
-            : req.query.acknowledged === 'false'
-              ? false
-              : undefined,
         startDate: req.query.startDate ? new Date(req.query.startDate as string) : undefined,
         endDate: req.query.endDate ? new Date(req.query.endDate as string) : undefined,
       };
 
-      const alerts = await alertService.getTriggeredAlerts(filters);
+      const alerts = await alertService.getAlerts(filters);
       res.status(200).json({
         success: true,
         data: alerts,
@@ -135,36 +129,17 @@ export class AlertController {
   async getTriggeredAlertById(req: Request, res: Response) {
     try {
       const id = parseInt(req.params.id);
-      const alert = await alertService.getTriggeredAlertById(id);
+      const alert = await alertService.getAlertById(id);
       res.status(200).json({
         success: true,
         data: alert,
       });
     } catch (error: any) {
-      logger.error('Error fetching triggered alert:', error);
-      const statusCode = error.message === 'Triggered alert not found' ? 404 : 500;
+      logger.error('Error fetching alert:', error);
+      const statusCode = error.message === 'Alert not found' ? 404 : 500;
       res.status(statusCode).json({
         success: false,
-        error: error.message || 'Failed to fetch triggered alert',
-      });
-    }
-  }
-
-  async acknowledgeAlert(req: Request, res: Response) {
-    try {
-      const id = parseInt(req.params.id);
-      const alert = await alertService.acknowledgeAlert(id);
-      logger.info(`Alert acknowledged: ${id}`);
-      res.status(200).json({
-        success: true,
-        data: alert,
-      });
-    } catch (error: any) {
-      logger.error('Error acknowledging alert:', error);
-      const statusCode = error.message === 'Triggered alert not found' ? 404 : 500;
-      res.status(statusCode).json({
-        success: false,
-        error: error.message || 'Failed to acknowledge alert',
+        error: error.message || 'Failed to fetch alert',
       });
     }
   }
