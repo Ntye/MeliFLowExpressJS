@@ -3,8 +3,6 @@ import { AlertRuleCreationAttributes } from '../models/AlertRule';
 import { Measurement } from '../models/Measurement';
 import { alertWebSocket } from '../websocket/alertNotificationHandler';
 
-const FLOATING_POINT_EPSILON = 0.01;
-
 export class AlertService {
   private alertRepository: AlertRepository;
 
@@ -18,9 +16,7 @@ export class AlertService {
 
   async getAllAlertRules(filters?: {
     rucheId?: number;
-    rucherId?: number;
-    enabled?: boolean;
-    userId?: number;
+    active?: boolean;
   }) {
     return await this.alertRepository.findAllRules(filters);
   }
@@ -49,27 +45,18 @@ export class AlertService {
     return { message: 'Alert rule deleted successfully' };
   }
 
-  async getTriggeredAlerts(filters?: {
+  async getAlerts(filters?: {
     rucheId?: number;
-    acknowledged?: boolean;
     startDate?: Date;
     endDate?: Date;
   }) {
-    return await this.alertRepository.findTriggeredAlerts(filters);
+    return await this.alertRepository.findAlerts(filters);
   }
 
-  async getTriggeredAlertById(id: number) {
-    const alert = await this.alertRepository.findTriggeredAlertById(id);
+  async getAlertById(id: number) {
+    const alert = await this.alertRepository.findAlertById(id);
     if (!alert) {
-      throw new Error('Triggered alert not found');
-    }
-    return alert;
-  }
-
-  async acknowledgeAlert(id: number) {
-    const alert = await this.alertRepository.acknowledgeAlert(id);
-    if (!alert) {
-      throw new Error('Triggered alert not found');
+      throw new Error('Alert not found');
     }
     return alert;
   }
@@ -78,25 +65,22 @@ export class AlertService {
     const rules = await this.alertRepository.getActiveRulesForRuche(measurement.rucheId);
 
     for (const rule of rules) {
-      const triggered = this.evaluateRule(rule, measurement);
+      const triggered = this.evaluateRuleWithParams(rule, measurement);
 
       if (triggered) {
-        const message = this.generateAlertMessage(rule, measurement);
-        const value = this.getValueForAlertType(rule.alertType, measurement);
+        const payload = this.generateAlertPayload(rule, measurement);
 
-        const triggeredAlert = await this.alertRepository.createTriggeredAlert({
-          alertRuleId: rule.id,
+        const alert = await this.alertRepository.createAlert({
+          ruleId: rule.id,
           rucheId: measurement.rucheId,
-          measurementId: measurement.id,
-          message,
-          value: value ?? undefined,
+          payload,
           triggeredAt: new Date(),
         });
 
         // Send WebSocket notification
         alertWebSocket.broadcast({
           type: 'alert_triggered',
-          alert: triggeredAlert,
+          alert,
           rule,
           measurement,
         });
@@ -104,90 +88,65 @@ export class AlertService {
     }
   }
 
-  private evaluateRule(rule: any, measurement: Measurement): boolean {
-    const value = this.getValueForAlertType(rule.alertType, measurement);
+  private evaluateRuleWithParams(rule: any, measurement: Measurement): boolean {
+    const { ruleType, params } = rule;
 
-    if (value === null || value === undefined) {
-      return false;
-    }
-
-    switch (rule.condition) {
-      case 'greater_than':
-        return rule.threshold !== null && value > rule.threshold;
-
-      case 'less_than':
-        return rule.threshold !== null && value < rule.threshold;
-
-      case 'equals':
-        return rule.threshold !== null && Math.abs(value - rule.threshold) < FLOATING_POINT_EPSILON;
-
-      case 'between':
-        return (
-          rule.thresholdMin !== null &&
-          rule.thresholdMax !== null &&
-          value >= rule.thresholdMin &&
-          value <= rule.thresholdMax
-        );
-
+    switch (ruleType) {
+      case 'weight_threshold':
+        return this.evaluateWeightThreshold(measurement, params);
+      case 'temperature_anomaly':
+        return this.evaluateTemperatureAnomaly(measurement, params);
+      case 'humidity_alert':
+        return this.evaluateHumidityAlert(measurement, params);
       default:
         return false;
     }
   }
 
-  private parseDecimalValue(value: any): number | null {
-    if (value === null || value === undefined) return null;
-    return parseFloat(value.toString());
+  private evaluateWeightThreshold(measurement: Measurement, params: any): boolean {
+    if (!measurement.weight || !params.min_weight || !params.max_weight) return false;
+    const weight = parseFloat(measurement.weight.toString());
+    return weight < params.min_weight || weight > params.max_weight;
   }
 
-  private getValueForAlertType(alertType: string, measurement: Measurement): number | null {
-    switch (alertType) {
-      case 'weight':
-        return this.parseDecimalValue(measurement.weight);
-
-      case 'temperature':
-        return this.parseDecimalValue(measurement.temperature);
-
-      case 'humidity':
-        return this.parseDecimalValue(measurement.humidity);
-
-      default:
-        return null;
-    }
+  private evaluateTemperatureAnomaly(measurement: Measurement, params: any): boolean {
+    if (!measurement.temperature || !params.min_temp || !params.max_temp) return false;
+    const temp = parseFloat(measurement.temperature.toString());
+    return temp < params.min_temp || temp > params.max_temp;
   }
 
-  private generateAlertMessage(rule: any, measurement: Measurement): string {
-    const value = this.getValueForAlertType(rule.alertType, measurement);
-    const unit = this.getUnitForAlertType(rule.alertType);
-
-    switch (rule.condition) {
-      case 'greater_than':
-        return `${rule.name}: ${rule.alertType} (${value}${unit}) is greater than threshold (${rule.threshold}${unit})`;
-
-      case 'less_than':
-        return `${rule.name}: ${rule.alertType} (${value}${unit}) is less than threshold (${rule.threshold}${unit})`;
-
-      case 'equals':
-        return `${rule.name}: ${rule.alertType} (${value}${unit}) equals threshold (${rule.threshold}${unit})`;
-
-      case 'between':
-        return `${rule.name}: ${rule.alertType} (${value}${unit}) is between ${rule.thresholdMin}${unit} and ${rule.thresholdMax}${unit}`;
-
-      default:
-        return `${rule.name}: Alert triggered`;
-    }
+  private evaluateHumidityAlert(measurement: Measurement, params: any): boolean {
+    if (!measurement.humidity || !params.min_humidity || !params.max_humidity) return false;
+    const humidity = parseFloat(measurement.humidity.toString());
+    return humidity < params.min_humidity || humidity > params.max_humidity;
   }
 
-  private getUnitForAlertType(alertType: string): string {
-    switch (alertType) {
-      case 'weight':
-        return 'kg';
-      case 'temperature':
-        return '°C';
-      case 'humidity':
-        return '%';
+  private generateAlertPayload(rule: any, measurement: Measurement): any {
+    const { ruleType, params } = rule;
+    const payload: any = { rule_type: ruleType };
+
+    switch (ruleType) {
+      case 'weight_threshold':
+        payload.message = 'Weight threshold exceeded';
+        payload.current_weight = measurement.weight ? parseFloat(measurement.weight.toString()) : null;
+        payload.thresholds = { min: params.min_weight, max: params.max_weight };
+        break;
+      case 'temperature_anomaly':
+        payload.message = 'Temperature anomaly detected';
+        payload.current_temp = measurement.temperature ? parseFloat(measurement.temperature.toString()) : null;
+        payload.thresholds = { min: params.min_temp, max: params.max_temp };
+        break;
+      case 'humidity_alert':
+        payload.message = 'Humidity alert';
+        payload.current_humidity = measurement.humidity ? parseFloat(measurement.humidity.toString()) : null;
+        payload.thresholds = { min: params.min_humidity, max: params.max_humidity };
+        break;
       default:
-        return '';
+        payload.message = 'Alert triggered';
     }
+
+    payload.recorded_at = measurement.recordedAt;
+    return payload;
   }
 
   async testAlertRule(ruleId: number) {
@@ -195,7 +154,7 @@ export class AlertService {
     return {
       rule,
       message: 'Alert rule is valid and active',
-      status: rule.enabled ? 'enabled' : 'disabled',
+      status: rule.active ? 'active' : 'inactive',
     };
   }
 }
